@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+import argparse
 import numpy as np
 from itertools import izip_longest
 
@@ -7,8 +8,14 @@ biggest_difference = 0.0
 
 def main():
 
-    filea = open("opvals_Oh.mom_000.T2++_1.looptype3_opnum0_size4_test.dat")
-    fileb = open("opvals_t2pp_0_optype3_op1_size_4_diag.dat")
+    parser = argparse.ArgumentParser(description="check if two data files are equivalent")
+    parser.add_argument("file1", type=str, help="first file to compare")
+    parser.add_argument("file2", type=str, help="second file to compare")
+    parser.add_argument("-v", "--verbose", action="store_true", help="increase output verbosity")
+    args = parser.parse_args()
+
+    filea = open(args.file1)
+    fileb = open(args.file2)
 
     counter = 0
     while True:
@@ -49,7 +56,6 @@ def comparestrings(s1, s2):
     # if len(numbers1) is not len(numbers2):
     #     print "warning: line differs in number of data values"
 
-    # print numbers1,numbers2
     global biggest_difference
     for p in izip_longest(numbers1, numbers2, fillvalue=0.0):
         e1, e2 = p

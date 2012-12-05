@@ -45,7 +45,10 @@ def main():
             exit(1)
 
     global biggest_difference
-    logging.info("files matched within tolerance. biggest mismatch {}".format(biggest_difference))
+    if biggest_difference > 0.0:
+        logging.info("files matched within tolerance. biggest mismatch {}".format(biggest_difference))
+    else:
+        logging.info("files matched Exactly. You could have used diff")
 
 
 def numbersfromstring(s):
@@ -54,7 +57,7 @@ def numbersfromstring(s):
         try:
             numbers.append(float(trial))
         except ValueError:
-            logging.error("{} could not be a float".format(trial))
+            logging.error("{} could not be converted to a float".format(trial))
     return numbers
 
 

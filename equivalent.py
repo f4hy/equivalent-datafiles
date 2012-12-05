@@ -16,6 +16,7 @@ def main():
     parser.add_argument("-q", "--quiet", action="count", help="run quietly, report only errors, twice report nothing just return value")
     parser.add_argument("-a", "--atol", default=1.e-8, type=float, help="set the aboslute tolerance")
     parser.add_argument("-r", "--rtol", default=1.e-5, type=float, help="set the relative tolerance")
+    parser.add_argument("-d", "--delimiter", type=str, default=",", help="delimiter of the data file")
     args = parser.parse_args()
 
     if args.quiet == 1:
@@ -32,6 +33,7 @@ def main():
 
     logging.debug("relative tolerance: {}".format(args.rtol))
     logging.debug("aboslute tolerance: {}".format(args.atol))
+    logging.debug("delimiter: '{}'".format(args.delimiter))
 
     filea = open(args.file1)
     fileb = open(args.file2)
@@ -47,10 +49,10 @@ def main():
         if linea[0] == "#" and lineb[0] == "#":
             logging.debug("line {} was a comment".format(counter))
             continue
-        if not comparestrings(linea, lineb, args.rtol, args.atol):
+        if not comparestrings(linea, lineb, args.rtol, args.atol, delimiter=args.delimiter):
             logging.error("missmatch on line {}".format(counter))
-            logging.debug("file1 line {}: \"{}\"".format(counter,linea.strip()))
-            logging.debug("file2 line {}: \"{}\"".format(counter,lineb.strip()))
+            logging.debug("file1 line {}: \"{}\"".format(counter, linea.strip()))
+            logging.debug("file2 line {}: \"{}\"".format(counter, lineb.strip()))
             logging.error("files not equivalent")
             exit(1)
 
@@ -61,21 +63,23 @@ def main():
         logging.info("files matched Exactly. You could have used diff")
 
 
-def numbersfromstring(s):
+def numbersfromstring(s, delimiter=","):
     numbers = []
-    for trial in s.split(","):
+    for trial in s.split(delimiter.decode('string-escape')):
         try:
             numbers.append(float(trial))
         except ValueError:
-            logging.error("{} could not be converted to a float".format(trial))
+            logging.error("{} could not be converted to a float".format(trial.strip()))
+            logging.error("Check your delimiters")
+            exit(-1)
     return numbers
 
 
-def comparestrings(s1, s2, reltol, abstol):
+def comparestrings(s1, s2, reltol, abstol, delimiter=","):
     if s1 == s2:
         return True
-    numbers1 = numbersfromstring(s1)
-    numbers2 = numbersfromstring(s2)
+    numbers1 = numbersfromstring(s1, delimiter)
+    numbers2 = numbersfromstring(s2, delimiter)
 
     # if len(numbers1) is not len(numbers2):
     #     print "warning: line differs in number of data values"

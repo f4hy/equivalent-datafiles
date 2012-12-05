@@ -21,7 +21,9 @@ def main():
     if args.quiet == 1:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARN)
     elif args.quiet == 2:
-        pass
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARN)
+        logger = logging.getLogger()
+        logger.disabled = True
     elif args.verbose:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         logging.debug("Verbose debuging mode activated")

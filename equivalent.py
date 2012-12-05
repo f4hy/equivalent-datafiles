@@ -14,6 +14,8 @@ def main():
     parser.add_argument("file2", type=str, help="second data file to compare")
     parser.add_argument("-v", "--verbose", action="store_true", help="increase output verbosity")
     parser.add_argument("-q", "--quiet", action="count", help="run quietly, report only errors, twice report nothing just return value")
+    parser.add_argument("-a", "--atol", default=1.e-8, type=float, help="set the aboslute tolerance")
+    parser.add_argument("-r", "--rtol", default=1.e-5, type=float, help="set the relative tolerance")
     args = parser.parse_args()
 
     if args.quiet == 1:
@@ -25,6 +27,9 @@ def main():
         logging.debug("Verbose debuging mode activated")
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+    logging.debug("relative tolerance: {}".format(args.rtol))
+    logging.debug("aboslute tolerance: {}".format(args.atol))
 
     filea = open(args.file1)
     fileb = open(args.file2)
@@ -40,7 +45,10 @@ def main():
         if linea[0] == "#" and lineb[0] == "#":
             logging.debug("line {} was a comment".format(counter))
             continue
-        if not comparestrings(linea, lineb):
+        if not comparestrings(linea, lineb, args.rtol, args.atol):
+            logging.error("missmatch on line {}".format(counter))
+            logging.debug("file1 line {}: \"{}\"".format(counter,linea.strip()))
+            logging.debug("file2 line {}: \"{}\"".format(counter,lineb.strip()))
             logging.error("files not equivalent")
             exit(1)
 
@@ -61,7 +69,7 @@ def numbersfromstring(s):
     return numbers
 
 
-def comparestrings(s1, s2):
+def comparestrings(s1, s2, reltol, abstol):
     if s1 == s2:
         return True
     numbers1 = numbersfromstring(s1)
@@ -74,7 +82,7 @@ def comparestrings(s1, s2):
     for p in izip_longest(numbers1, numbers2, fillvalue=0.0):
         e1, e2 = p
         biggest_difference = max(biggest_difference, abs(e1 - e2))
-        if not np.allclose(*p):
+        if not np.allclose(*p, rtol=reltol, atol=abstol):
             logging.error("{} did not match {}".format(*p))
             return False
     return True

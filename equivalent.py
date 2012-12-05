@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+import logging
 import argparse
 import numpy as np
 from itertools import izip_longest
@@ -8,11 +9,22 @@ biggest_difference = 0.0
 
 def main():
 
-    parser = argparse.ArgumentParser(description="check if two data files are equivalent")
-    parser.add_argument("file1", type=str, help="first file to compare")
-    parser.add_argument("file2", type=str, help="second file to compare")
+    parser = argparse.ArgumentParser(description="Check if two data files are equivalent. Returns 0 if matched and 1 if not")
+    parser.add_argument("file1", type=str, help="first data file to compare")
+    parser.add_argument("file2", type=str, help="second data file to compare")
     parser.add_argument("-v", "--verbose", action="store_true", help="increase output verbosity")
+    parser.add_argument("-q", "--quiet", action="count", help="run quietly, report only errors, twice report nothing just return value")
     args = parser.parse_args()
+
+    if args.quiet == 1:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARN)
+    elif args.quiet == 2:
+        pass
+    elif args.verbose:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+        logging.debug("Verbose debuging mode activated")
+    else:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
     filea = open(args.file1)
     fileb = open(args.file2)
@@ -23,18 +35,17 @@ def main():
         linea = filea.readline()
         lineb = fileb.readline()
         if linea == "" and lineb == "":
-            print "end of file"
+            logging.debug("end of file")
             break
         if linea[0] == "#" and lineb[0] == "#":
-            print "line {} was a comment".format(counter)
+            logging.debug("line {} was a comment".format(counter))
             continue
         if not comparestrings(linea, lineb):
-            print "files not equivalent"
+            logging.error("files not equivalent")
             exit(1)
 
-    print "files matched within tolerance"
     global biggest_difference
-    print "biggest mismatch {}".format(biggest_difference)
+    logging.info("files matched within tolerance. biggest mismatch {}".format(biggest_difference))
 
 
 def numbersfromstring(s):
@@ -43,7 +54,7 @@ def numbersfromstring(s):
         try:
             numbers.append(float(trial))
         except ValueError:
-            print "{} could not be a float".format(trial)
+            logging.error("{} could not be a float".format(trial))
     return numbers
 
 
@@ -61,7 +72,7 @@ def comparestrings(s1, s2):
         e1, e2 = p
         biggest_difference = max(biggest_difference, abs(e1 - e2))
         if not np.allclose(*p):
-            print "{} did not match {}".format(*p)
+            logging.error("{} did not match {}".format(*p))
             return False
     return True
 
